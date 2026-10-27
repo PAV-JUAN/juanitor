@@ -28,9 +28,11 @@ def level_for(value, warn, urgent):
 
 def check_disks():
     results = []
+    seen = set()
     for part in psutil.disk_partitions():
-        if part.fstype in IGNORED_FS:
+        if part.fstype in IGNORED_FS or part.device in seen:
             continue
+        seen.add(part.device)
         usage = psutil.disk_usage(part.mountpoint)
         results.append(finding(
             "disk",
