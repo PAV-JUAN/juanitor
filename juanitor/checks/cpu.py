@@ -50,8 +50,18 @@ def top_processes(count=5, seconds=2):
     return [f"{name}: {percent:.0f}% CPU" for percent, name in usage[:count]]
 
 
+TRANSCODE_NOTE = ("Note: ffmpeg is usually Jellyfin converting a video for "
+                  "someone watching right now. Stopping it would stop their "
+                  "movie, so do not kill it; the load normally ends when the "
+                  "movie ends.")
+
+
 def cpu_evidence(db, finding):
-    return "Top processes right now:\n" + "\n".join(top_processes())
+    top = top_processes()
+    text = "Top processes right now:\n" + "\n".join(top)
+    if any(line.startswith(("ffmpeg", "jellyfin")) for line in top):
+        text += "\n" + TRANSCODE_NOTE
+    return text
 
 
 def run_all(db):

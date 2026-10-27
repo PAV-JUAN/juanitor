@@ -1,80 +1,354 @@
 [
   {
     "id": "backup_full_restic",
-    "finding": {"title": "/mnt/backup is 92% full", "details": "0.3 GB free of 3.9 GB", "level": "urgent"},
+    "finding": {
+      "title": "/mnt/backup is 92% full",
+      "details": "0.3 GB free of 3.9 GB",
+      "level": "urgent"
+    },
     "evidence": "History: 85% full 168 hours ago, 92% now.\nLargest folders:\n  /mnt/backup/restic-repo: 3.5 GB",
-    "must_mention": [["restic"]],
-    "must_not_mention": ["empty"],
-    "confidence_in": ["medium", "high"]
+    "must_mention": [
+      [
+        "restic"
+      ]
+    ],
+    "must_not_mention": [
+      "empty"
+    ],
+    "confidence_in": [
+      "medium",
+      "high"
+    ]
   },
   {
     "id": "no_history",
-    "finding": {"title": "/mnt/backup is 85% full", "details": "0.6 GB free of 3.9 GB", "level": "warning"},
+    "finding": {
+      "title": "/mnt/backup is 85% full",
+      "details": "0.6 GB free of 3.9 GB",
+      "level": "warning"
+    },
     "evidence": "History: unknown, there is no past data. Do not say whether it grew, shrank or stayed the same.\nLargest folders:\n  /mnt/backup/restic-repo: 3.2 GB",
-    "must_mention": [["restic"]],
-    "must_not_mention": ["grew", "grown", "growing", "increas", "stable", "no change"],
-    "confidence_in": ["low", "medium", "high"]
+    "must_mention": [
+      [
+        "restic"
+      ]
+    ],
+    "must_not_mention": [
+      "grew",
+      "grown",
+      "growing",
+      "increas",
+      "stable",
+      "no change"
+    ],
+    "confidence_in": [
+      "low",
+      "medium",
+      "high"
+    ]
   },
   {
     "id": "unreadable_folders",
-    "finding": {"title": "/mnt/backup is 88% full", "details": "0.5 GB free of 3.9 GB", "level": "warning"},
+    "finding": {
+      "title": "/mnt/backup is 88% full",
+      "details": "0.5 GB free of 3.9 GB",
+      "level": "warning"
+    },
     "evidence": "History: unknown, there is no past data. Do not say whether it grew, shrank or stayed the same.\nLargest folders: none could be measured.\nNote: some folders could not be read (permission denied), so folder sizes are incomplete.",
-    "must_mention": [["permission", "could not be read", "incomplete", "not enough"]],
-    "must_not_mention": ["empty", "grew", "grown", "growing", "stable"],
-    "confidence_in": ["low", "medium"]
+    "must_mention": [
+      [
+        "permission",
+        "could not be read",
+        "incomplete",
+        "not enough"
+      ]
+    ],
+    "must_not_mention": [
+      "empty",
+      "grew",
+      "grown",
+      "growing",
+      "stable"
+    ],
+    "confidence_in": [
+      "low",
+      "medium"
+    ]
   },
   {
     "id": "home_growing_fast",
-    "finding": {"title": "/ is 91% full", "details": "90.5 GB free of 1005.4 GB", "level": "urgent"},
+    "finding": {
+      "title": "/ is 91% full",
+      "details": "90.5 GB free of 1005.4 GB",
+      "level": "urgent"
+    },
     "evidence": "History: 70% full 48 hours ago, 91% now.\nLargest folders:\n  /home: 820.0 GB\n  /var: 60.0 GB\n  /usr: 12.0 GB",
-    "must_mention": [["/home"]],
-    "must_not_mention": ["/var is", "empty"],
-    "confidence_in": ["medium", "high"]
+    "must_mention": [
+      [
+        "/home"
+      ]
+    ],
+    "must_not_mention": [
+      "/var is",
+      "empty"
+    ],
+    "confidence_in": [
+      "medium",
+      "high"
+    ]
   },
   {
     "id": "docker_var",
-    "finding": {"title": "/ is 89% full", "details": "110.6 GB free of 1005.4 GB", "level": "warning"},
+    "finding": {
+      "title": "/ is 89% full",
+      "details": "110.6 GB free of 1005.4 GB",
+      "level": "warning"
+    },
     "evidence": "History: 80% full 72 hours ago, 89% now.\nLargest folders:\n  /var: 420.0 GB\n  /home: 230.0 GB\n  /usr: 12.0 GB",
-    "must_mention": [["/var"]],
-    "must_not_mention": ["empty"],
-    "confidence_in": ["medium", "high"]
+    "must_mention": [
+      [
+        "/var"
+      ]
+    ],
+    "must_not_mention": [
+      "empty"
+    ],
+    "confidence_in": [
+      "medium",
+      "high"
+    ]
   },
   {
     "id": "cpu_hot_no_evidence",
-    "finding": {"title": "CPU at 88°C", "details": "hottest of 3 sensors", "level": "urgent"},
+    "finding": {
+      "title": "CPU at 88°C",
+      "details": "hottest of 3 sensors",
+      "level": "urgent"
+    },
     "evidence": "No extra evidence collected.",
-    "must_mention": [["fan", "cool", "dust", "airflow", "heat", "temperature", "process"]],
-    "must_not_mention": ["disk", "full"],
-    "confidence_in": ["low", "medium"]
-  }
-  ,
+    "must_mention": [
+      [
+        "fan",
+        "cool",
+        "dust",
+        "airflow",
+        "heat",
+        "temperature",
+        "process"
+      ]
+    ],
+    "must_not_mention": [
+      "disk",
+      "full"
+    ],
+    "confidence_in": [
+      "low",
+      "medium"
+    ]
+  },
   {
     "id": "backup_missed",
     "cron_ran": false,
     "backup_context": true,
-    "finding": {"title": "No successful backup for 50 hours", "details": "last result OK, 50 hours ago", "level": "urgent"},
+    "finding": {
+      "title": "No successful backup for 50 hours",
+      "details": "last result OK, 50 hours ago",
+      "level": "urgent"
+    },
     "evidence": "Recent backup log lines:\n=== Backup started: Sat Oct 31 07:30:01 AM UTC 2026 ===\nBACKUP_STATUS=OK 1793431810\nRESTORE_TEST=OK 1793431830",
-    "must_mention": [["cron", "crontab", "07:30", "schedule"]],
-    "must_not_mention": ["backup.service", "systemctl"],
-    "confidence_in": ["low", "medium", "high"]
+    "must_mention": [
+      [
+        "cron",
+        "crontab",
+        "07:30",
+        "schedule"
+      ]
+    ],
+    "must_not_mention": [
+      "backup.service",
+      "systemctl"
+    ],
+    "confidence_in": [
+      "low",
+      "medium",
+      "high"
+    ]
   },
   {
     "id": "backup_drive_missing",
     "mounted": false,
     "backup_context": true,
-    "finding": {"title": "Last backup FAILED", "details": "last result FAILED, 3 hours ago", "level": "urgent"},
+    "finding": {
+      "title": "Last backup FAILED",
+      "details": "last result FAILED, 3 hours ago",
+      "level": "urgent"
+    },
     "evidence": "Recent backup log lines:\n=== Backup started: Mon Nov 2 07:30:01 AM UTC 2026 ===\nFatal: unable to open config file: stat /mnt/backup/restic/config: no such file or directory\nBACKUP_STATUS=FAILED 1793604610 line 68",
-    "must_mention": [["mount", "plugged", "connected", "drive", "ssd"]],
-    "must_not_mention": ["backup.service", "systemctl"],
-    "confidence_in": ["medium", "high"]
+    "must_mention": [
+      [
+        "mount",
+        "plugged",
+        "connected",
+        "drive",
+        "ssd"
+      ]
+    ],
+    "must_not_mention": [
+      "backup.service",
+      "systemctl"
+    ],
+    "confidence_in": [
+      "medium",
+      "high"
+    ]
   },
   {
     "id": "restore_test_vaultwarden",
     "backup_context": true,
-    "finding": {"title": "Restore test FAILED", "details": "2 hours ago", "level": "warning"},
+    "finding": {
+      "title": "Restore test FAILED",
+      "details": "2 hours ago",
+      "level": "warning"
+    },
     "evidence": "Recent backup log lines:\nBACKUP_STATUS=OK 1793604700\nRESTORE TEST FAILED: restored Vaultwarden database is damaged\nRESTORE_TEST=FAILED 1793604730",
-    "must_mention": [["vaultwarden"]],
-    "must_not_mention": ["backup.service", "systemctl"],
-    "confidence_in": ["low", "medium", "high"]
+    "must_mention": [
+      [
+        "vaultwarden"
+      ]
+    ],
+    "must_not_mention": [
+      "backup.service",
+      "systemctl"
+    ],
+    "confidence_in": [
+      "low",
+      "medium",
+      "high"
+    ]
+  },
+  {
+    "id": "container_config_missing",
+    "container": "paperless",
+    "finding": {
+      "title": "Container paperless: is stuck restarting",
+      "details": "status restarting, 12 restarts total, restart policy unless-stopped, mounts (server -> container): /home/juan/paperless/config -> /app/config",
+      "level": "urgent"
+    },
+    "evidence": "Last log lines:\nStarting Paperless...\nFATAL: cannot read /app/config/settings.yml: No such file or directory",
+    "must_mention": [
+      [
+        "/home/juan/paperless/config",
+        "docker logs"
+      ]
+    ],
+    "must_not_mention": [
+      "cat /app"
+    ],
+    "confidence_in": [
+      "medium",
+      "high"
+    ]
+  },
+  {
+    "id": "container_oom",
+    "container": "immich",
+    "finding": {
+      "title": "Container immich: was killed for using too much memory (OOM)",
+      "details": "status running, 3 restarts total, restart policy unless-stopped, mounts (server -> container): /home/juan/immich/upload -> /usr/src/app/upload",
+      "level": "urgent"
+    },
+    "evidence": "Last log lines:\nGenerating thumbnails for 2400 photos\nMachine learning model loaded (1.8 GB)\nProcessing batch 14/48",
+    "must_mention": [
+      [
+        "memory",
+        "ram",
+        "oom"
+      ]
+    ],
+    "must_not_mention": [
+      "disk is full"
+    ],
+    "confidence_in": [
+      "medium",
+      "high"
+    ]
+  },
+  {
+    "id": "smart_sectors",
+    "finding": {
+      "title": "Drive Fanxiang S101 1TB: 24 reallocated sectors, 3 pending sectors",
+      "details": "Fanxiang S101 1TB, 9120 power-on hours, 38°C",
+      "level": "urgent"
+    },
+    "evidence": "No extra evidence collected.",
+    "must_mention": [
+      [
+        "backup",
+        "replace",
+        "failing",
+        "dying",
+        "wear"
+      ]
+    ],
+    "must_not_mention": [
+      "mkfs",
+      "format"
+    ],
+    "confidence_in": [
+      "medium",
+      "high"
+    ]
+  },
+  {
+    "id": "ssh_stranger",
+    "finding": {
+      "title": "SSH login from an unknown address",
+      "details": "juan from 203.0.113.50",
+      "level": "urgent"
+    },
+    "evidence": "Recent SSH log lines:\nNov 03 02:14:09 juanito sshd-session[91234]: Accepted password for juan from 203.0.113.50 port 51234 ssh2",
+    "must_mention": [
+      [
+        "203.0.113.50"
+      ],
+      [
+        "password",
+        "key",
+        "disable",
+        "change"
+      ]
+    ],
+    "must_not_mention": [
+      "ignore"
+    ],
+    "confidence_in": [
+      "medium",
+      "high"
+    ],
+    "ssh_note": true
+  },
+  {
+    "id": "cpu_transcoding",
+    "finding": {
+      "title": "CPU overloaded at 140% for 25+ minutes",
+      "details": "15-minute load average 5.6 on 4 cores",
+      "level": "warning"
+    },
+    "evidence": "Top processes right now:\nffmpeg: 310% CPU\njellyfin: 25% CPU\npython3: 4% CPU\ncaddy: 2% CPU\ndockerd: 1% CPU",
+    "must_mention": [
+      [
+        "ffmpeg",
+        "jellyfin",
+        "transcod"
+      ]
+    ],
+    "must_not_mention": [
+      "kill"
+    ],
+    "confidence_in": [
+      "medium",
+      "high"
+    ],
+    "cpu_note": true
   }
 ]

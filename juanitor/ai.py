@@ -50,7 +50,7 @@ SCHEMA = {
 DANGEROUS = ("rm -rf", "mkfs", "dd if=", "> /dev/", "chmod -R 777")
 SAFE_COMMANDS = ("ls", "du", "df", "cat", "grep", "tail", "head", "free",
                  "uptime", "top", "sensors", "findmnt", "lsblk",
-                 "journalctl", "smartctl", "docker ps", "docker logs",
+                 "journalctl", "smartctl -a", "smartctl -H", "smartctl -A", "docker ps", "docker logs",
                  "systemctl status", "crontab -l", "crontab -u root -l")
 
 GROWTH_WORDS = ("grew", "grown", "growing", "increas", "stable",

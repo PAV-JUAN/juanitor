@@ -109,12 +109,16 @@ def backup_evidence(db, finding):
     return header + "\nRecent backup log lines:\n" + "\n".join(important[-12:])
 
 
+def container_note(name):
+    return ("Note: paths in the logs are inside the container. "
+            "To inspect files, use the server side of the mounts, "
+            f"or: docker logs {name}")
+
+
 def container_evidence(db, finding):
     name = finding["key"].split(":", 1)[1]
-    lines = [f"Container: {name}. {finding['details']}."]
-    lines.append("Note: paths in the logs are inside the container. "
-                 "To inspect files, use the server side of the mounts, "
-                 f"or: docker logs {name}")
+    lines = [f"Container: {name}. {finding['details']}.",
+             container_note(name)]
     try:
         logs = [line[:200] for line in container_logs(name).splitlines()
                 if line.strip()]

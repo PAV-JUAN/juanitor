@@ -15,6 +15,11 @@ ATTACK_WINDOW_HOURS = 2
 ATTACK_WARN = 10
 ATTACK_URGENT = 50
 TAILSCALE = ipaddress.ip_network("100.64.0.0/10")
+STRANGER_NOTE = ("Note: SSH is only meant to be reachable from the home "
+                 "network or Tailscale. A successful login from an outside "
+                 "address means someone else may know the password, or SSH "
+                 "is exposed. Recommended: change the password and switch "
+                 "to SSH keys only.")
 
 FAILED = re.compile(r"Failed password|Invalid user")
 ACCEPTED = re.compile(r"Accepted \S+ for (\S+) from (\S+)")
@@ -130,7 +135,10 @@ def security_evidence(db, finding):
                  if FAILED.search(line) or "Accepted" in line]
         if not lines:
             return "No failed or accepted SSH logins in the last hour."
-        return "Recent SSH log lines:\n" + "\n".join(lines[-12:])
+        text = "Recent SSH log lines:\n" + "\n".join(lines[-12:])
+        if finding["key"] == "security:ssh_login":
+            text += "\n" + STRANGER_NOTE
+        return text
     return f"CrowdSec summary: {finding['details']}"
 
 

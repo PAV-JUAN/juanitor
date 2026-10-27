@@ -1,12 +1,17 @@
+import argparse
 import json
-import sys
 import time
 from pathlib import Path
 
 from juanitor import ai
-from juanitor.evidence import BACKUP_CONTEXT, cron_sentence, mount_sentence
+from juanitor.checks.cpu import TRANSCODE_NOTE
+from juanitor.checks.security import STRANGER_NOTE
+from juanitor.evidence import (BACKUP_CONTEXT, container_note, cron_sentence,
+                               mount_sentence)
 
-SCENARIOS = Path(__file__).parent / "scenarios.json"
+HERE = Path(__file__).parent
+SCENARIOS = HERE / "scenarios.json"
+REPORT = HERE / "last_run.md"
 
 
 def grade(scenario, answer):
@@ -33,32 +38,62 @@ def build_evidence(scenario):
         ran = scenario.get("cron_ran", True)
         evidence = (BACKUP_CONTEXT + "\n" + mount_sentence(mounted) + "\n"
                     + cron_sentence(ran) + "\n" + evidence)
+    if scenario.get("container"):
+        name = scenario["container"]
+        header = f"Container: {name}. {scenario['finding']['details']}."
+        evidence = header + "\n" + container_note(name) + "\n" + evidence
+    if scenario.get("cpu_note"):
+        evidence += "\n" + TRANSCODE_NOTE
+    if scenario.get("ssh_note"):
+        evidence += "\n" + STRANGER_NOTE
     return evidence
 
 
 def main():
-    scenarios = json.loads(SCENARIOS.read_text())
-    only = sys.argv[1] if len(sys.argv) > 1 else None
-    passed = 0
-    total = 0
+    parser = argparse.ArgumentParser(description="Score the AI on test scenarios")
+    parser.add_argument("only", nargs="?", help="run only this scenario id")
+    parser.add_argument("--repeat", type=int, default=1, help="runs per scenario")
+    args = parser.parse_args()
+
+    scenarios = [s for s in json.loads(SCENARIOS.read_text())
+                 if not args.only or s["id"] == args.only]
+    rows = []
+    total_passed = total_runs = 0
     for s in scenarios:
-        if only and s["id"] != only:
-            continue
-        total += 1
-        start = time.time()
-        answer = ai.explain(s["finding"], build_evidence(s))
-        seconds = time.time() - start
-        problems = grade(s, answer)
-        if not problems:
-            passed += 1
-        print(f"[{'PASS' if not problems else 'FAIL'}] {s['id']} ({seconds:.0f}s)")
-        if answer:
-            print(f"    summary: {answer['summary']}")
-            print(f"    cause:   {answer['cause']}")
-            print(f"    fix:     {answer['fix']}  [{answer['confidence']}]")
-        for problem in problems:
-            print(f"    -> {problem}")
-    print(f"\nScore: {passed}/{total} with model {ai.OLLAMA_MODEL}")
+        passed = 0
+        seconds = []
+        last_fail = None
+        for _ in range(args.repeat):
+            start = time.time()
+            answer = ai.explain(s["finding"], build_evidence(s))
+            seconds.append(time.time() - start)
+            problems = grade(s, answer)
+            if problems:
+                last_fail = (answer, problems)
+            else:
+                passed += 1
+        total_passed += passed
+        total_runs += args.repeat
+        avg = sum(seconds) / len(seconds)
+        print(f"[{passed}/{args.repeat}] {s['id']} (avg {avg:.0f}s)")
+        if last_fail:
+            answer, problems = last_fail
+            if answer:
+                print(f"    last failing answer: {answer['summary']} | "
+                      f"{answer['cause']} | {answer['fix']} [{answer['confidence']}]")
+            for problem in problems:
+                print(f"    -> {problem}")
+        rows.append(f"| {s['id']} | {passed}/{args.repeat} | {avg:.0f}s |")
+
+    rate = 100 * total_passed / total_runs if total_runs else 0
+    summary = (f"Pass rate: {total_passed}/{total_runs} ({rate:.0f}%) "
+               f"with model {ai.OLLAMA_MODEL}, {args.repeat} run(s) per scenario")
+    print("\n" + summary)
+    if not args.only:
+        REPORT.write_text("# Last eval run\n\n" + summary + "\n\n"
+                          "| Scenario | Passed | Avg time |\n|---|---|---|\n"
+                          + "\n".join(rows) + "\n")
+        print(f"Report saved to {REPORT}")
 
 
 if __name__ == "__main__":
