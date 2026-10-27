@@ -1,7 +1,10 @@
 import os
 import subprocess
 
+import requests
+
 from juanitor import state
+from juanitor.checks.containers import container_logs
 
 NO_HISTORY_TEXT = ("History: unknown, there is no past data. "
                    "Do not say whether it grew, shrank or stayed the same.")
@@ -104,7 +107,23 @@ def backup_evidence(db, finding):
     return header + "\nRecent backup log lines:\n" + "\n".join(important[-12:])
 
 
-EVIDENCE = {"disk": disk_evidence, "backup": backup_evidence}
+def container_evidence(db, finding):
+    name = finding["key"].split(":", 1)[1]
+    lines = [f"Container: {name}. {finding['details']}."]
+    try:
+        logs = [line[:200] for line in container_logs(name).splitlines()
+                if line.strip()]
+        if logs:
+            lines.append("Last log lines:\n" + "\n".join(logs[-15:]))
+        else:
+            lines.append("Last log lines: (empty)")
+    except requests.RequestException as error:
+        lines.append(f"Logs could not be read: {error}")
+    return "\n".join(lines)
+
+
+EVIDENCE = {"disk": disk_evidence, "backup": backup_evidence,
+            "container": container_evidence}
 
 
 def collect(db, finding):

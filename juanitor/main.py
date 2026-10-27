@@ -1,5 +1,5 @@
 from juanitor import ai, evidence, notify, state
-from juanitor.checks import backup, smart, system
+from juanitor.checks import backup, containers, smart, system
 
 def explain_text(db, f):
     proof = evidence.collect(db, f)
@@ -25,8 +25,9 @@ def handle_alert(db, f):
 
 
 def main():
-    findings = system.run_all() + backup.run_all() + smart.run_all()
     db = state.connect()
+    findings = (system.run_all() + backup.run_all() + smart.run_all()
+                + containers.run_all(db))
     with db:
         for f in findings:
             state.save_reading(db, f)
@@ -37,6 +38,14 @@ def main():
             elif action == "resolved":
                 print(f"RESOLVED {f['title']}")
                 notify.send(f"Resolved: {f['title']}", f["details"], "resolved")
+        seen = {f['key'] for f in findings}
+        if 'container:proxy' not in seen:
+            for key in state.forget_missing(db, 'container:', seen):
+                name = key.split(':', 1)[1]
+                print(f'RESOLVED container {name} no longer exists')
+                notify.send(f'Resolved: container {name} was removed',
+                            'It no longer exists, so its alert is closed.',
+                            'resolved')
     db.close()
     print(f"Checked {len(findings)} items.")
 

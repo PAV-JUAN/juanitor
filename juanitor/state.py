@@ -55,3 +55,12 @@ def change_over(db, key, days):
     if hours < 1:
         return None
     return row[1], hours
+
+
+def forget_missing(db, prefix, seen_keys):
+    rows = db.execute("SELECT key FROM alerts WHERE key LIKE ?",
+                      (prefix + "%",)).fetchall()
+    gone = [key for (key,) in rows if key not in seen_keys]
+    for key in gone:
+        db.execute("DELETE FROM alerts WHERE key = ?", (key,))
+    return gone
