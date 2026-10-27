@@ -12,7 +12,7 @@ services:
       - OLLAMA_NUM_PARALLEL=1
       - OLLAMA_MAX_LOADED_MODELS=1
       - OLLAMA_NO_CLOUD=true
-    cpus: "2"
+    cpus: "4"
     cpu_shares: 256
     mem_limit: 4g
 

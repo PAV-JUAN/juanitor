@@ -5,6 +5,7 @@ import requests
 
 from juanitor import state
 from juanitor.checks.containers import container_logs
+from juanitor.checks.cpu import cpu_evidence
 from juanitor.checks.security import security_evidence
 
 NO_HISTORY_TEXT = ("History: unknown, there is no past data. "
@@ -128,7 +129,8 @@ def container_evidence(db, finding):
 
 EVIDENCE = {"disk": disk_evidence, "backup": backup_evidence,
             "container": container_evidence,
-            "security": security_evidence}
+            "security": security_evidence,
+            "cpu": cpu_evidence}
 
 
 def collect(db, finding):

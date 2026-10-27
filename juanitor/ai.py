@@ -9,6 +9,7 @@ load_dotenv()
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:3b")
 TIMEOUT_SECONDS = 180
+THREADS = 4
 
 SYSTEM_PROMPT = """You are Juanitor, a sysadmin assistant for a small home Ubuntu server.
 You get one problem and the evidence collected about it. Answer in JSON.
@@ -78,7 +79,7 @@ def ask(messages):
                 "messages": messages,
                 "format": SCHEMA,
                 "stream": False,
-                "options": {"temperature": 0.2, "num_thread": 2,
+                "options": {"temperature": 0.2, "num_thread": THREADS,
                             "num_predict": 350},
             },
             timeout=TIMEOUT_SECONDS,

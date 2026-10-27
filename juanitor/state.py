@@ -64,3 +64,14 @@ def forget_missing(db, prefix, seen_keys):
     for key in gone:
         db.execute("DELETE FROM alerts WHERE key = ?", (key,))
     return gone
+
+
+def previous(db, key):
+    row = db.execute("SELECT value FROM readings WHERE key = ? "
+                     "ORDER BY ts DESC LIMIT 1", (key,)).fetchone()
+    return row[0] if row else None
+
+
+def cleanup(db, days=30):
+    cutoff = int(time.time()) - days * 86400
+    db.execute("DELETE FROM readings WHERE ts < ?", (cutoff,))
