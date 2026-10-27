@@ -1,0 +1,12 @@
+[Unit]
+Description=Collect SMART disk health data for Juanitor
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/juanitor-smart-collect
+StateDirectory=juanitor-smart
+StateDirectoryMode=0755
+ProtectSystem=strict
+ProtectHome=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
