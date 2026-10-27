@@ -34,8 +34,26 @@ def disk_evidence(db, finding):
     return "\n".join(lines)
 
 
-EVIDENCE = {"disk": disk_evidence}
+BACKUP_LOG = "/var/log/homelab-backup.log"
+BACKUP_KEYWORDS = ("FAILED", "ERROR", "Fatal", "error:", "STATUS",
+                   "Backup started")
 
+
+def backup_evidence(db, finding):
+    try:
+        with open(BACKUP_LOG, errors="replace") as log:
+            lines = log.read().splitlines()
+    except OSError as error:
+        return f"Backup log could not be read: {error}"
+    important = [line for line in lines[-200:]
+                 if any(word in line for word in BACKUP_KEYWORDS)]
+    if not important:
+        return "No error lines in the recent backup log."
+    return "Recent backup log lines:\n" + "\n".join(important[-12:])
+
+
+
+EVIDENCE = {"disk": disk_evidence, "backup": backup_evidence}
 
 def collect(db, finding):
     collector = EVIDENCE.get(finding["check"])
