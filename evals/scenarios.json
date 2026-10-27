@@ -1,0 +1,50 @@
+[
+  {
+    "id": "backup_full_restic",
+    "finding": {"title": "/mnt/backup is 92% full", "details": "0.3 GB free of 3.9 GB", "level": "urgent"},
+    "evidence": "History: 85% full 168 hours ago, 92% now.\nLargest folders:\n  /mnt/backup/restic-repo: 3.5 GB",
+    "must_mention": [["restic"]],
+    "must_not_mention": ["empty"],
+    "confidence_in": ["medium", "high"]
+  },
+  {
+    "id": "no_history",
+    "finding": {"title": "/mnt/backup is 85% full", "details": "0.6 GB free of 3.9 GB", "level": "warning"},
+    "evidence": "History: unknown, there is no past data. Do not say whether it grew, shrank or stayed the same.\nLargest folders:\n  /mnt/backup/restic-repo: 3.2 GB",
+    "must_mention": [["restic"]],
+    "must_not_mention": ["grew", "grown", "growing", "increas", "stable", "no change"],
+    "confidence_in": ["low", "medium", "high"]
+  },
+  {
+    "id": "unreadable_folders",
+    "finding": {"title": "/mnt/backup is 88% full", "details": "0.5 GB free of 3.9 GB", "level": "warning"},
+    "evidence": "History: unknown, there is no past data. Do not say whether it grew, shrank or stayed the same.\nLargest folders: none could be measured.\nNote: some folders could not be read (permission denied), so folder sizes are incomplete.",
+    "must_mention": [["permission", "could not be read", "incomplete", "not enough"]],
+    "must_not_mention": ["empty", "grew", "grown", "growing", "stable"],
+    "confidence_in": ["low", "medium"]
+  },
+  {
+    "id": "home_growing_fast",
+    "finding": {"title": "/ is 91% full", "details": "90.5 GB free of 1005.4 GB", "level": "urgent"},
+    "evidence": "History: 70% full 48 hours ago, 91% now.\nLargest folders:\n  /home: 820.0 GB\n  /var: 60.0 GB\n  /usr: 12.0 GB",
+    "must_mention": [["/home"]],
+    "must_not_mention": ["/var is", "empty"],
+    "confidence_in": ["medium", "high"]
+  },
+  {
+    "id": "docker_var",
+    "finding": {"title": "/ is 89% full", "details": "110.6 GB free of 1005.4 GB", "level": "warning"},
+    "evidence": "History: 80% full 72 hours ago, 89% now.\nLargest folders:\n  /var: 420.0 GB\n  /home: 230.0 GB\n  /usr: 12.0 GB",
+    "must_mention": [["/var"]],
+    "must_not_mention": ["empty"],
+    "confidence_in": ["medium", "high"]
+  },
+  {
+    "id": "cpu_hot_no_evidence",
+    "finding": {"title": "CPU at 88°C", "details": "hottest of 3 sensors", "level": "urgent"},
+    "evidence": "No extra evidence collected.",
+    "must_mention": [["fan", "cool", "dust", "airflow", "heat", "temperature", "process"]],
+    "must_not_mention": ["disk", "full"],
+    "confidence_in": ["low", "medium"]
+  }
+]
