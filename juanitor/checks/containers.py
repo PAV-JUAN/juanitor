@@ -73,8 +73,11 @@ def check_container(db, info):
             level = "warning"
 
     title = f"Container {name}: " + ("; ".join(problems) if problems else st["Status"])
+    mounts = ", ".join(f"{m['Source']} -> {m['Destination']}"
+                       for m in info.get("Mounts", [])) or "none"
     details = (f"status {st['Status']}, {restarts} restarts total, "
-               f"restart policy {policy}")
+               f"restart policy {policy}, mounts (server -> container): "
+               f"{mounts}")
     return finding("container", name, level, title, details, value=restarts)
 
 
