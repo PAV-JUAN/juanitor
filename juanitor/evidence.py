@@ -5,6 +5,7 @@ import requests
 
 from juanitor import state
 from juanitor.checks.containers import container_logs
+from juanitor.checks.security import security_evidence
 
 NO_HISTORY_TEXT = ("History: unknown, there is no past data. "
                    "Do not say whether it grew, shrank or stayed the same.")
@@ -126,7 +127,8 @@ def container_evidence(db, finding):
 
 
 EVIDENCE = {"disk": disk_evidence, "backup": backup_evidence,
-            "container": container_evidence}
+            "container": container_evidence,
+            "security": security_evidence}
 
 
 def collect(db, finding):

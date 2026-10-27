@@ -1,5 +1,5 @@
 from juanitor import ai, evidence, notify, state
-from juanitor.checks import backup, containers, smart, system
+from juanitor.checks import backup, containers, security, smart, system
 
 def explain_text(db, f):
     proof = evidence.collect(db, f)
@@ -27,7 +27,7 @@ def handle_alert(db, f):
 def main():
     db = state.connect()
     findings = (system.run_all() + backup.run_all() + smart.run_all()
-                + containers.run_all(db))
+                + containers.run_all(db) + security.run_all(db))
     with db:
         for f in findings:
             state.save_reading(db, f)
