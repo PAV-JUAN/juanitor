@@ -47,4 +47,34 @@
     "must_not_mention": ["disk", "full"],
     "confidence_in": ["low", "medium"]
   }
+  ,
+  {
+    "id": "backup_missed",
+    "cron_ran": false,
+    "backup_context": true,
+    "finding": {"title": "No successful backup for 50 hours", "details": "last result OK, 50 hours ago", "level": "urgent"},
+    "evidence": "Recent backup log lines:\n=== Backup started: Sat Oct 31 07:30:01 AM UTC 2026 ===\nBACKUP_STATUS=OK 1793431810\nRESTORE_TEST=OK 1793431830",
+    "must_mention": [["cron", "crontab", "07:30", "schedule"]],
+    "must_not_mention": ["backup.service", "systemctl"],
+    "confidence_in": ["low", "medium", "high"]
+  },
+  {
+    "id": "backup_drive_missing",
+    "mounted": false,
+    "backup_context": true,
+    "finding": {"title": "Last backup FAILED", "details": "last result FAILED, 3 hours ago", "level": "urgent"},
+    "evidence": "Recent backup log lines:\n=== Backup started: Mon Nov 2 07:30:01 AM UTC 2026 ===\nFatal: unable to open config file: stat /mnt/backup/restic/config: no such file or directory\nBACKUP_STATUS=FAILED 1793604610 line 68",
+    "must_mention": [["mount", "plugged", "connected", "drive", "ssd"]],
+    "must_not_mention": ["backup.service", "systemctl"],
+    "confidence_in": ["medium", "high"]
+  },
+  {
+    "id": "restore_test_vaultwarden",
+    "backup_context": true,
+    "finding": {"title": "Restore test FAILED", "details": "2 hours ago", "level": "warning"},
+    "evidence": "Recent backup log lines:\nBACKUP_STATUS=OK 1793604700\nRESTORE TEST FAILED: restored Vaultwarden database is damaged\nRESTORE_TEST=FAILED 1793604730",
+    "must_mention": [["vaultwarden"]],
+    "must_not_mention": ["backup.service", "systemctl"],
+    "confidence_in": ["low", "medium", "high"]
+  }
 ]

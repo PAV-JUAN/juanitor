@@ -1,6 +1,10 @@
+import os
 import subprocess
 
 from juanitor import state
+
+NO_HISTORY_TEXT = ("History: unknown, there is no past data. "
+                   "Do not say whether it grew, shrank or stayed the same.")
 
 
 def disk_evidence(db, finding):
@@ -9,7 +13,7 @@ def disk_evidence(db, finding):
 
     change = state.change_over(db, finding["key"], days=7)
     if change is None:
-        lines.append("History: unknown, there is no past data. Do not say whether it grew, shrank or stayed the same.")
+        lines.append(NO_HISTORY_TEXT)
     else:
         old, hours = change
         lines.append(f"History: {old:.0f}% full {hours:.0f} hours ago, "
@@ -25,35 +29,83 @@ def disk_evidence(db, finding):
             size_kb, path = line.split("\t", 1)
             rows.append((int(size_kb), path))
         rows.sort(reverse=True)
-        lines.append("Largest folders:")
-        for size_kb, path in rows[1:7]:
-            lines.append(f"  {path}: {size_kb / 1e6:.1f} GB")
+        if len(rows) > 1:
+            lines.append("Largest folders:")
+            for size_kb, path in rows[1:7]:
+                lines.append(f"  {path}: {size_kb / 1e6:.1f} GB")
+        else:
+            lines.append("Largest folders: none could be measured.")
+        if "Permission denied" in result.stderr:
+            lines.append("Note: some folders could not be read (permission "
+                         "denied), so folder sizes are incomplete.")
     except subprocess.TimeoutExpired:
         lines.append("Folder sizes: scan took too long, skipped.")
 
     return "\n".join(lines)
 
 
+BACKUP_CONTEXT = (
+    "How backups work on this server: root's crontab runs "
+    "/home/juan/backup-system/backup.sh every day at 07:30. "
+    "It backs up with restic to /mnt/backup (an external SSD) and to "
+    "Google Drive, then runs a restore test (verify.sh). Results are "
+    "written to /var/log/homelab-backup.log. "
+    "There is no systemd service for backups. "
+    "A backup counts as missed after 26 hours."
+)
+BACKUP_MOUNT = "/mnt/backup"
 BACKUP_LOG = "/var/log/homelab-backup.log"
 BACKUP_KEYWORDS = ("FAILED", "ERROR", "Fatal", "error:", "STATUS",
                    "Backup started")
 
 
+def mount_sentence(mounted):
+    if mounted:
+        return f"Mount check: the backup drive IS mounted at {BACKUP_MOUNT}."
+    return (f"Mount check: the backup drive is NOT mounted at {BACKUP_MOUNT} "
+            "right now (unplugged or failed to mount).")
+
+
+def cron_ran():
+    try:
+        result = subprocess.run(
+            ["journalctl", "-u", "cron", "--since", "26 hours ago",
+             "--no-pager", "-q"],
+            capture_output=True, text=True, timeout=20,
+        )
+    except subprocess.TimeoutExpired:
+        return None
+    if result.returncode != 0:
+        return None
+    return "backup.sh" in result.stdout
+
+
+def cron_sentence(ran):
+    if ran is None:
+        return "Cron check: the cron log could not be read."
+    if ran:
+        return "Cron check: cron DID start backup.sh in the last 26 hours."
+    return "Cron check: cron did NOT start backup.sh in the last 26 hours."
+
+
 def backup_evidence(db, finding):
+    header = (BACKUP_CONTEXT + "\n"
+              + mount_sentence(os.path.ismount(BACKUP_MOUNT)) + "\n"
+              + cron_sentence(cron_ran()))
     try:
         with open(BACKUP_LOG, errors="replace") as log:
             lines = log.read().splitlines()
     except OSError as error:
-        return f"Backup log could not be read: {error}"
+        return header + f"\nBackup log could not be read: {error}"
     important = [line for line in lines[-200:]
                  if any(word in line for word in BACKUP_KEYWORDS)]
     if not important:
-        return "No error lines in the recent backup log."
-    return "Recent backup log lines:\n" + "\n".join(important[-12:])
-
+        return header + "\nNo error lines in the recent backup log."
+    return header + "\nRecent backup log lines:\n" + "\n".join(important[-12:])
 
 
 EVIDENCE = {"disk": disk_evidence, "backup": backup_evidence}
+
 
 def collect(db, finding):
     collector = EVIDENCE.get(finding["check"])

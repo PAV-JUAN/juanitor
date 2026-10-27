@@ -21,7 +21,7 @@ Fields:
 
 Rules:
 - Never invent file names, numbers or services.
-- If the history says there is not enough data, do not claim anything grew.
+- If the history is unknown, do not say anything grew, shrank or stayed the same.
 - If folder sizes are incomplete or missing, say so instead of guessing what is inside.
 - Keep each field under 25 words.
 
@@ -47,11 +47,26 @@ SCHEMA = {
 }
 
 DANGEROUS = ("rm -rf", "mkfs", "dd if=", "> /dev/", "chmod -R 777")
+SAFE_COMMANDS = ("ls", "du", "df", "cat", "grep", "tail", "head", "free",
+                 "uptime", "top", "sensors", "findmnt", "lsblk",
+                 "journalctl", "smartctl", "docker ps", "docker logs",
+                 "systemctl status", "crontab -l", "crontab -u root -l")
 
 GROWTH_WORDS = ("grew", "grown", "growing", "increas", "stable",
                 "no change", "filled up")
 NO_HISTORY = "History: unknown"
 SAFE_CAUSE = "Past usage is unknown, so it is not clear if this disk is filling up."
+
+NOT_MOUNTED = "backup drive is NOT mounted"
+MOUNT_WORDS = ("mount", "plug", "connect")
+
+
+def is_safe(command):
+    command = command.strip()
+    if command.startswith("sudo "):
+        command = command[len("sudo "):]
+    return any(command == safe or command.startswith(safe + " ")
+               for safe in SAFE_COMMANDS)
 
 
 def ask(messages):
@@ -88,8 +103,16 @@ def find_issues(answer, evidence):
         text = f"{answer['summary']} {answer['cause']}".lower()
         found = [word for word in GROWTH_WORDS if word in text]
         if found:
-            issues.append(f"you described a change in usage ({', '.join(found)}) "
-                          "but the history is unknown")
+            issues.append(("history",
+                           f"you described a change in usage ({', '.join(found)}) "
+                           "but the history is unknown. Describe only what uses "
+                           "the space now"))
+    if NOT_MOUNTED in evidence:
+        text = " ".join([answer["summary"], answer["cause"], answer["fix"]]).lower()
+        if not any(word in text for word in MOUNT_WORDS):
+            issues.append(("mount",
+                           "the evidence says the backup drive is NOT mounted, "
+                           "but your answer does not mention it"))
     return issues
 
 
@@ -107,26 +130,40 @@ def explain(finding, evidence):
 
     issues = find_issues(answer, evidence)
     if issues:
-        print(f"    (retrying: {'; '.join(issues)})")
+        feedback = "; ".join(message for _, message in issues)
+        print(f"    (retrying: {feedback})")
         messages += [
             {"role": "assistant", "content": json.dumps(answer)},
             {"role": "user", "content": (
-                "Fix your answer: " + "; ".join(issues) +
-                ". Describe only what uses the space now. "
+                f"Fix your answer: {feedback}. "
                 "Answer again in the same JSON format.")},
         ]
         retry = ask(messages)
         if retry is not None:
             answer = retry
 
-    if find_issues(answer, evidence):
-        print("    (fallback: replaced the cause)")
-        answer["cause"] = SAFE_CAUSE
-        answer["summary"] = f"{finding['title']}."
+    for kind, _ in find_issues(answer, evidence):
+        print(f"    (fallback: {kind})")
+        if kind == "history":
+            answer["cause"] = SAFE_CAUSE
+            answer["summary"] = f"{finding['title']}."
+        elif kind == "mount":
+            answer["cause"] = ("The backup drive is not mounted at /mnt/backup, "
+                               "so restic cannot reach its repository.")
+            answer["fix"] = "Check if the drive is connected with: findmnt /mnt/backup"
 
     if NO_HISTORY in evidence and answer["confidence"] == "high":
         answer["confidence"] = "medium"
 
+    if NOT_MOUNTED in evidence and answer["confidence"] == "low":
+        answer["confidence"] = "medium"
+
     if any(bad in answer["fix"] for bad in DANGEROUS):
         answer["fix"] = "(hidden: the suggestion contained a destructive command)"
+    elif ":" in answer["fix"]:
+        advice, command = answer["fix"].split(":", 1)
+        if not is_safe(command):
+            print(f"    (unsafe command hidden: {command.strip()})")
+            advice = advice.strip().removesuffix(" with").removesuffix(" by running")
+            answer["fix"] = advice + " (suggested command hidden: not on the safe list)"
     return answer

@@ -4,6 +4,7 @@ import time
 from pathlib import Path
 
 from juanitor import ai
+from juanitor.evidence import BACKUP_CONTEXT, cron_sentence, mount_sentence
 
 SCENARIOS = Path(__file__).parent / "scenarios.json"
 
@@ -25,6 +26,16 @@ def grade(scenario, answer):
     return problems
 
 
+def build_evidence(scenario):
+    evidence = scenario["evidence"]
+    if scenario.get("backup_context"):
+        mounted = scenario.get("mounted", True)
+        ran = scenario.get("cron_ran", True)
+        evidence = (BACKUP_CONTEXT + "\n" + mount_sentence(mounted) + "\n"
+                    + cron_sentence(ran) + "\n" + evidence)
+    return evidence
+
+
 def main():
     scenarios = json.loads(SCENARIOS.read_text())
     only = sys.argv[1] if len(sys.argv) > 1 else None
@@ -35,7 +46,7 @@ def main():
             continue
         total += 1
         start = time.time()
-        answer = ai.explain(s["finding"], s["evidence"])
+        answer = ai.explain(s["finding"], build_evidence(s))
         seconds = time.time() - start
         problems = grade(s, answer)
         if not problems:
